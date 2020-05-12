@@ -35,10 +35,10 @@ Find out how to use WebGL and WebGL-based 3D rendering engines like three.js to 
 
 ### Installing
 
-The [4D Volume Rendering Demo](https://esri.github.io/devsummit-2019-3D-jsapi/Advanced-WebGL-in-3D-SceneViews/External-Volume-Renderer/) can be installed locally for better performance. The data is stored in ```git lfs``` (Large File Storage). Install a local webserver to serve the checked out repository and follow the following steps:
+The [4D Volume Rendering Demo](https://esri.github.io/devsummit-2019-3D-jsapi/Advanced-WebGL-in-3D-SceneViews/External-Volume-Renderer/) can be installed locally for better performance. Install a local webserver to serve the checked out repository and follow the following steps:
 
-* Install git-lfs (for example using ```brew install git-lfs``` or ```apt install git-lfs```)
-* Clone the repository with lfs: ```git lfs clone https://github.com/Esri/devsummit-2019-3D-jsapi.git```
+* ```cd Advanced-WebGL-in-3D-SceneViews/isabeldata/```
+* ```wget -i files.txt```
 * Open ```localhost://.../devsummit-2019-3D-jsapi/Advanced-WebGL-in-3D-SceneViews/External-Volume-Renderer/``` in your browser
 
 
