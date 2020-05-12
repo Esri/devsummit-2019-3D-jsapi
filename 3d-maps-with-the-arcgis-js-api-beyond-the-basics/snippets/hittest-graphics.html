@@ -1,0 +1,123 @@
+<script>
+  function snippet(containers, interlinks) {
+    require([
+      "dojo/promise/all",
+      "esri/geometry/Polygon",
+      "esri/Map",
+      "esri/Graphic",
+      "esri/layers/SceneLayer",
+      "esri/layers/FeatureLayer",
+      "esri/views/SceneView",
+      "esri/symbols/SimpleFillSymbol"
+    ], function (
+      all,
+      Polygon,
+      Map,
+      Graphic,
+      SceneLayer,
+      FeatureLayer,
+      SceneView,
+      SimpleFillSymbol
+    ) {
+
+      var layer = new FeatureLayer("https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/Tree_Census_2015/FeatureServer");;
+      layer.popupEnabled = false;
+
+      var sceneLayer = new SceneLayer("https://tiles.arcgis.com/tiles/WQ9KVmV6xGGMnCiQ/arcgis/rest/services/NYC3D_AGO_Z_BFCull/SceneServer");
+      var sceneLayer = new SceneLayer({
+        url: "https://tiles.arcgis.com/tiles/WQ9KVmV6xGGMnCiQ/arcgis/rest/services/NYC3D_AGO_Z_BFCull/SceneServer",
+        renderer: {
+          type: "simple",
+          symbol: {
+            type: "mesh-3d",
+            symbolLayers: [{
+              type: "fill",
+              material: { color: "white" },
+              edges: { type: "solid", color: [0, 0, 0] },
+            }]
+          }
+        }
+      });
+      sceneLayer.popupEnabled = false;
+
+      var view = new SceneView({
+        container: containers.viewDiv,
+
+        map: new Map({
+          basemap: "streets",
+          ground: "world-elevation",
+          layers: [layer, sceneLayer]
+        }),
+
+        camera: {
+          position: {
+            x: -8235500,
+            y: 4962199,
+            z: 874,
+            spatialReference: {
+              latestWkid: 3857,
+              wkid: 102100
+            }
+          },
+          heading: 0,
+          tilt: 30
+        }
+      });
+
+      var ring = [];
+      var graphic;
+      var fill = new SimpleFillSymbol({
+        color: [227, 139, 79, 0.4],
+        outline: {
+          color: [207, 0, 12],
+          width: 1
+        }
+      });
+
+      document.getElementById("viewDiv").onclick = function (event) {
+        event.stopPropagation();
+
+        view.hitTest({
+          x: event.clientX,
+          y: event.clientY
+        }).then(function (response) {
+          var result = response.results[0];
+          if (result && result.graphic) {
+            var point = result.graphic.geometry;
+            var last = ring.length - 1;
+            if (last < 0) {
+              ring.push([point.x, point.y]);
+              ring.push([point.x, point.y]);
+            }
+            else {
+              ring.push([ring[last][0], ring[last][1]]);
+              ring[last][0] = point.x;
+              ring[last][1] = point.y;
+            }
+
+            if (ring.length > 3) {
+              var polygon = new Polygon({
+                rings: [ring],
+                spatialReference: point.spatialReference
+              });
+
+              view.graphics.remove(graphic);
+              graphic = new Graphic({
+                geometry: polygon,
+                symbol: fill
+              });
+              view.graphics.push(graphic);
+            }
+          }
+        });
+      }
+    });
+  }
+
+  settings = {
+    disableOverviewMap: true
+  };
+
+</script>
+
+<script src="./support/snippet.js"></script>

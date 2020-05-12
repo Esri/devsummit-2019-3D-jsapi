@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Measurement in 3D - 4.10</title>
+
+  <style>
+  html, body, #viewDiv {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  .esri-legend {
+    width: 120px !important;
+  }
+
+  /* background-image: url(../images/bg-4.png);
+}
+.reveal .slide-background-content {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    background-size: cover; */
+
+  </style>
+
+  <script>
+    var dojoConfig = {
+      packages: [{
+        name: "geolocate",
+        location: "//2gis.github.io/mock-geolocation/dist",
+        main: "geolocate"
+      }]
+    }
+  </script>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.11/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.11/"></script>
+
+  <script>
+
+    require([
+        "geolocate", // geolocation simulator (https://github.com/2gis/mock-geolocation)
+        "esri/widgets/Track",
+        "esri/WebScene",
+        "esri/webscene/Slide",
+        "esri/views/SceneView",
+        "esri/Graphic",
+        "esri/views/layers/support/FeatureFilter",
+        "esri/layers/BuildingSceneLayer",
+        "esri/widgets/Slice",
+        "esri/widgets/LayerList",
+        "esri/widgets/Legend",
+        "esri/widgets/DirectLineMeasurement3D",
+        "esri/widgets/AreaMeasurement3D",
+        "esri/widgets/Slice",
+        "esri/core/Collection",
+        "esri/geometry/SpatialReference",
+        "esri/core/watchUtils",
+        "dojo/domReady!"
+      ], function(geolocate, Track, WebScene, Slide, SceneView, Graphic, FeatureFilter, BuildingSceneLayer, Slice, LayerList, Legend, DirectLineMeasurement3D, AreaMeasurement3D, Slice, Collection, SpatialReference, watchUtils) {
+
+      var buildingLayer, novaLayer, trafficFirePointLayer, policePointLayer,
+        firePointLayer, treeLayer, crimePointLayer, crimeTessellationLayer, liveAmbulanceLayer,
+        tacticalOpPlanLayer, sewerLayer, adminBuildingLayer, waterLayer, nonPotableWaterLayer,
+        stormDrainLayer, streetLightLayer;
+
+      var darkBuildingRenderer, darkOpacity, darkTreeRenderer;
+
+      // Load webscene and display it in a SceneView
+      const webscene = new WebScene({
+        portalItem: {
+          id: "5142eb7e05004cde9fa7ec0d5f3868fd"
+        }
+      });
+
+      function onclick(buttonId, onclick) {
+        var button = window.parent.document.getElementById(buttonId);
+        if (button && onclick) {
+          button.onclick = function() {
+            webscene.when(onclick).catch(console.error);
+          };
+        }
+      }
+
+      const view = new SceneView({
+        container: "viewDiv",
+        map: webscene,
+        qualityProfile: "high"
+      });
+      view.on("click",function(event) {
+        if (event.mapPoint) {
+          console.log("[" + event.mapPoint.x + ", " + event.mapPoint.y + "]", event);
+        }
+      });
+      window.view = view;
+
+      function onshow(slideTitle, onshow) {
+        view.when(function() {
+          if (slideTitle === window.parent.Reveal.getCurrentSlide().dataset.title) {
+            onshow();
+          }
+        }).catch(console.error);
+      }
+
+      // Change initial camera
+      view.camera = {
+        position: {
+          spatialReference: {
+            latestWkid: 3857,
+            wkid: 102100
+          },
+          x: -13046911.606656406,
+          y: 4036188.0336725423,
+          z: 664.4394205072895
+        },
+        heading: 79.09187431504188,
+        tilt: 68.85177359213203
+      };
+
+      // Add a layer list widget
+      const layerList = new LayerList({
+        view: view
+      });
+
+      // view.ui.add(layerList, "top-right");
+
+      // Reset scene
+      webscene.when(function() {
+        webscene.layers.forEach(function(layer) {
+          layer.visible = false;
+        });
+
+        var i = 0;
+        buildingLayer = webscene.layers.getItemAt(i++);
+        novaLayer = webscene.layers.getItemAt(i++);
+        trafficFirePointLayer = webscene.layers.getItemAt(i++);
+        policePointLayer = webscene.layers.getItemAt(i++);
+        firePointLayer = webscene.layers.getItemAt(i++);
+        treeLayer = webscene.layers.getItemAt(i++);
+        crimePointLayer = webscene.layers.getItemAt(i++);
+        crimeTessellationLayer = webscene.layers.getItemAt(i++);
+        liveAmbulanceLayer = webscene.layers.getItemAt(i++);
+        tacticalOpPlanLayer = webscene.layers.getItemAt(i++);
+        sewerLayer = webscene.layers.getItemAt(i++);
+        adminBuildingLayer = webscene.layers.getItemAt(i++);
+        waterLayer = webscene.layers.getItemAt(i++);
+        nonPotableWaterLayer = webscene.layers.getItemAt(i++);
+        stormDrainLayer = webscene.layers.getItemAt(i++);
+        streetLightLayer = webscene.layers.getItemAt(i++);
+
+        // Show white buildings
+        darkBuildingRenderer = buildingLayer.renderer;
+        darkBuildingOpacity = buildingLayer.opacity;
+        buildingLayer.renderer = {
+          type: "simple",  // autocasts as new SimpleRenderer()
+          symbol: {
+            type: "mesh-3d",  // autocasts as new MeshSymbol3D()
+            symbolLayers: [{
+              type: "fill", // autocasts as new FillSymbol3DLayer()
+              material: {
+                color: [255, 255, 255],
+                colorMixMode: "replace",
+              },
+              edges: {
+                type: "solid", // autocasts as new SolidEdges3D()
+                color: [50, 50, 50, 0.5],
+              },
+            }],
+          },
+        };
+        buildingLayer.opacity = 1;
+
+        // Show textures of trees
+        darkTreeRenderer = treeLayer.renderer;
+        var treeRenderer = darkTreeRenderer.clone();
+        treeRenderer.uniqueValueInfos.forEach(function(uv) {uv.symbol.symbolLayers.getItemAt(0).material = null;})
+        treeLayer.renderer = treeRenderer;
+
+        adminBuildingLayer.when(function () {
+            adminBuildingLayer.allSublayers.forEach(function(sublayer) {
+              sublayer.visible = true;
+              sublayer.popupEnabled = false;
+            })
+        });
+
+        webscene.basemap = "gray";
+        webscene.ground.opacity = 1;
+        webscene.ground.navigationConstraint = {
+          type: "stay-above",
+        };
+      }).catch(console.error);
+
+      // Slide: Mask Filter
+
+      var buildingCamera = {
+        position: {
+          spatialReference: SpatialReference.WebMercator,
+          x: -13045083.789455874,
+          y: 4036727.027287148,
+          z: 444.0421198187396
+        },
+        heading: 331.8727179163951,
+        tilt: 77.860205959406
+      };
+
+      var polygon = {
+        type: "polygon",
+        rings: [
+          [-13045144.22519497, 4036815.986120914],
+          [-13045149.901010452, 4036915.714135076],
+          [-13045220.477825338, 4036922.053727838],
+          [-13045195.95151689, 4036815.973322056]
+        ],
+        spatialReference: SpatialReference.WebMercator,
+      };
+
+      function applyFeatureFilter() {
+        view.whenLayerView(buildingLayer).then(function(layerView) {
+          layerView.filter = new FeatureFilter({
+            geometry: polygon,
+            spatialRelationship: "disjoint",
+          });
+        }).catch(console.error);
+      };
+
+      onshow("building-scene-layer", function() {
+        webscene.basemap = "satellite";
+        buildingLayer.visible = true;
+        treeLayer.visible = true;
+        streetLightLayer.visible = true;
+        view.camera = buildingCamera;
+        applyFeatureFilter();
+      });
+
+      onclick("addBuildingButton", function() {
+        adminBuildingLayer.visible = true;
+      });
+
+      // Slide: Building Scene Layer (API)
+
+      function getSublayer(name) {
+        return adminBuildingLayer
+          .allSublayers
+          .find(function(sublayer) {
+            return sublayer.title.startsWith(name);
+          });
+      };
+
+      function hideSublayerWithName(name) {
+        getSublayer(name).visible = false;
+      };
+
+      onshow("building-scene-layer-api", function() {
+        webscene.basemap = "satellite";
+        buildingLayer.visible = true;
+        treeLayer.visible = true;
+        applyFeatureFilter();
+        view.camera = buildingCamera;
+        adminBuildingLayer.visible = true;
+      });
+
+      onclick("hideRoofButton", function() {
+        hideSublayerWithName("ExteriorShell");
+        hideSublayerWithName("Roof");
+        hideSublayerWithName("SpecialtyEquipment");
+        hideSublayerWithName("Windows");
+        hideSublayerWithName("Doors");
+      });
+
+      onclick("hideWallsButton", function() {
+        hideSublayerWithName("ExteriorShell");
+        hideSublayerWithName("Walls");
+      });
+
+
+
+      // Slide: Building Scene Layer (Widgets)
+
+      var measurementCamera = {
+        position: {
+          spatialReference: { latestWkid: 3857, wkid: 102100 },
+          x: -13045126.783516923,
+          y: 4036805.444823721,
+          z: 425.98728383891284
+        },
+        heading: 331.87250412670573,
+        tilt: 77.86086944762026
+      };
+
+      var sliceCamera = {
+        position: {
+          spatialReference: { latestWkid: 3857, wkid: 102100 },
+          x: -13045246.922400912,
+          y: 4036934.65440884,
+          z: 428.80822070036083
+        },
+        heading: 135.2558814803693,
+        tilt: 77.86087490284824
+      };
+
+      onshow("building-scene-layer-widgets", function() {
+        buildingLayer.visible = true;
+        treeLayer.visible = true;
+        applyFeatureFilter();
+        view.camera = buildingCamera;
+        adminBuildingLayer.visible = true;
+      });
+
+      var activeWidget;
+      onclick("startLineMeasureButton", function() {
+        if (activeWidget) {
+          activeWidget.destroy();
+        }
+        view.goTo(measurementCamera);
+        activeWidget = new DirectLineMeasurement3D({
+          view: view
+        });
+        activeWidget.viewModel.newMeasurement();
+      });
+
+      onclick("startAreaMeasureButton", function() {
+        if (activeWidget) {
+          activeWidget.destroy();
+        }
+        view.goTo(measurementCamera);
+        activeWidget = new AreaMeasurement3D({
+          view: view
+        });
+        activeWidget.viewModel.newMeasurement();
+      });
+
+      onclick("startSliceButton", function() {
+        if (activeWidget) {
+          activeWidget.destroy();
+        }
+        view.goTo(sliceCamera);
+        activeWidget = new Slice({
+          view: view
+        });
+        activeWidget.viewModel.newSlice();
+
+        const sliceLayers = ["ExteriorShell", "Wall", "Windows", "Roof"];
+        var excludedLayers = adminBuildingLayer.allSublayers.filter(function(sublayer) {
+          return !sliceLayers.some(function(prefix) {return sublayer.title.startsWith(prefix)})
+        });
+        activeWidget.viewModel.excludedLayers.addMany(excludedLayers);
+      });
+
+
+      // Slide: underground
+
+      var abovegroundCamera = {
+        position: {
+          spatialReference: { latestWkid: 3857, wkid: 102100 },
+          x: -13045096.255900411,
+          y: 4036743.0153739713,
+          z: 467.5508326468989
+        },
+        heading: 331.87265531957456,
+        tilt: 59.57825338176479
+      };
+
+      var waterNetworkCamera = {
+        position: {
+          spatialReference: { latestWkid: 3857, wkid: 102100 },
+          x: -13045121.355110813,
+          y: 4036804.890097513,
+          z: 407.02004444785416
+        },
+        heading: 290.93481425229896,
+        tilt: 85.24648407047823
+      };
+
+      var undergroundCamera = {
+        position: {
+          spatialReference: { latestWkid: 3857, wkid: 102100 },
+          x: -13045072.253250174,
+          y: 4036795.251715636,
+          z: 367.67300749290735
+        },
+        heading: 296.07897912340184,
+        tilt: 117.43783361348669
+      };
+
+      onshow("underground", function() {
+        applyFeatureFilter();
+        view.camera = abovegroundCamera;
+        buildingLayer.visible = true;
+        adminBuildingLayer.visible = true;
+        treeLayer.visible = true;
+        streetLightLayer.visible = true;
+        webscene.basemap = "satellite";
+
+        view.environment.atmosphereEnabled = false;
+        view.environment.starsEnabled = false;
+        view.environment.background = {
+          type: "color",
+          color: [255, 255, 255, 1]
+        };
+        // hideNonStructuralSublayers();
+      });
+
+      onclick("showUndergroundButton", function() {
+        sewerLayer.visible = true;
+        waterLayer.visible = true;
+        nonPotableWaterLayer.visible = true;
+        stormDrainLayer.visible = true;
+        adminBuildingLayer.opacity = 0.5;
+        webscene.ground.opacity = 0.3;
+        view.goTo(abovegroundCamera, { duration: 2000 });
+
+        var legend = new Legend({
+          view: view,
+          style: {
+            layout: "stack",
+          },
+          layerInfos: [{
+            layer: waterLayer,
+            title: "Water"
+          },{
+            layer: sewerLayer.layers.find(function(sublayer) {return sublayer.title === "Sewer Gravity Mains"}),
+            title: "Sewer"
+          },{
+            layer: stormDrainLayer,
+            title: "Storm Drain"
+          }]
+        });
+
+        view.ui.add(legend, "top-right");
+      });
+
+      onclick("goWaterNetworkButton", function() {
+        webscene.ground.navigationConstraint = {
+          type: "none",
+        };
+        view.goTo(waterNetworkCamera, { duration: 2000 });
+      });
+
+      onclick("goUndergroundButton", function() {
+        webscene.ground.navigationConstraint = {
+          type: "none",
+        };
+        view.goTo(undergroundCamera, { duration: 2000 });
+      });
+
+
+
+      // Slide: rendering
+
+      var redlandsCamera = {
+        position: {
+          spatialReference: { latestWkid: 3857, wkid: 102100 },
+          x: -13044948.708015954,
+          y: 4036890.7827479956,
+          z: 451.6049574604258
+        },
+        heading: 254.5782832850494,
+        tilt: 85.73957693725893
+      };
+
+      var day = "Thu Mar 15 2018 13:00:00 PST";
+      var afternoon = "Thu Mar 15 2018 16:30:00 PST";
+      var night = "Thu Mar 15 2018 19:30:00 PST";
+      function applyEnvironment(view, date) {
+        view.environment.starsEnabled = true;
+        view.environment.atmosphereEnabled = true;
+        view.environment.atmosphere = {
+          quality: "high"
+        };
+        view.environment.lighting = {
+          date: date,
+          directShadowsEnabled: true,
+          ambientOcclusionEnabled: true,
+          cameraTrackingEnabled: false,
+        };
+      }
+
+      onshow("rendering-environment", function() {
+        view.camera = redlandsCamera;
+        treeLayer.visible = true;
+        streetLightLayer.visible = true;
+        buildingLayer.visible = true;
+        adminBuildingLayer.visible = true;
+        webscene.basemap = "satellite";
+        applyFeatureFilter();
+      });
+
+      onclick("highQualityButton", function() {
+        applyEnvironment(view, afternoon);
+      });
+
+      onclick("sunsetButton", function() {
+        applyEnvironment(view, afternoon);
+        // view.camera = campusCamera;
+        Slide.createFrom(view).then(function(slide) {
+          applyEnvironment(slide, night);
+          slide.viewpoint.camera.position.z = slide.viewpoint.camera.position.z - 1;
+          slide.applyTo(view, { duration: 15000 });
+        });
+      });
+
+      var campusCamera = {
+        position: {
+          spatialReference: { latestWkid: 3857, wkid: 102100 },
+          x: -13045414.610461755,
+          y: 4036632.574555579,
+          z: 440.9431670056656
+        },
+        heading: 254.31414685912642,
+        tilt: 85.50292141320706
+      };
+
+      var mainBuildingCamera = {
+        position: {
+          spatialReference: { latestWkid: 3857, wkid: 102100 },
+          x: -13046059.702635314,
+          y: 4036436.6549846977,
+          z: 487.42715358082205
+        },
+        heading: 227.5787050986761,
+        tilt: 54.29852937705612
+      };
+
+      var tacticalCamera = {
+        position: {
+          spatialReference: { latestWkid: 3857, wkid: 102100 },
+          x: -13046162.056228241,
+          y: 4037548.559712957,
+          z: 975.4086550632492
+        },
+        heading: 181.63598296866803,
+        tilt: 54.29227466614357
+      };
+
+      var locationTrackingCamera = {
+        position: {
+          spatialReference: { latestWkid: 3857, wkid: 102100 },
+          x: -13046157.30335237,
+          y: 4037133.6322571733,
+          z: 697.3272168897092
+        },
+        heading: 181.63600687174454,
+        tilt: 54.295747676972546
+      };
+
+      onshow("rendering-nightmode", function() {
+        view.camera = campusCamera;
+        // treeLayer.visible = true;
+        buildingLayer.visible = true;
+        view.environment.lighting.date = night;
+        webscene.ground.surfaceColor = "#041221";
+      });
+
+      onclick("showTacticalViewButton", function() {
+        view.goTo(mainBuildingCamera, {duration: 1000});
+      });
+
+      onclick("darkBuildingsButton", function() {
+        treeLayer.renderer = darkTreeRenderer;
+        treeLayer.opacity = darkBuildingOpacity;
+        buildingLayer.renderer = darkBuildingRenderer;
+        buildingLayer.opacity = darkBuildingOpacity;
+      });
+
+      onclick("darkBasemapButton", function() {
+        view.goTo(tacticalCamera, { duration: 1000 }).then(function() {
+          webscene.basemap = null;
+          // webscene.ground.opacity = 0;
+
+          novaLayer.visible = true;
+
+          // Avoid flickering
+          setTimeout(function() {
+            view.environment.lighting.date = day;
+          }, 500);
+        });
+      });
+
+
+      var track;
+      onshow("rendering-dispatch", function() {
+
+        stubGeolocation();
+
+        view.camera = tacticalCamera;
+        webscene.basemap = null;
+        novaLayer.visible = true;
+        buildingLayer.visible = true;
+        buildingLayer.renderer = darkBuildingRenderer;
+        buildingLayer.opacity = darkBuildingOpacity;
+        treeLayer.visible = true;
+        treeLayer.renderer = darkTreeRenderer;
+        treeLayer.opacity = darkBuildingOpacity;
+        webscene.ground.surfaceColor = "#041221";
+
+        track = new Track({
+          view: view,
+          goToLocationEnabled: false // disable this since we want to control what happens after our location is acquired
+        });
+
+        // geolocation simulator
+        function stubGeolocation() {
+          var coords = [
+            {
+              lat: 34.05648363780692,
+              lng: -117.19565501782613
+            },
+            {
+              lng: -117.19565880345007,
+              lat: 34.05682230352545
+            },
+            {
+              lng: -117.19566258907402,
+              lat: 34.05716096924398
+            },
+            {
+              lng: -117.19566637469796,
+              lat: 34.05749963496251
+            },
+            {
+              lng: -117.19567016032191,
+              lat: 34.05783830068104
+            },
+            {
+              lng: -117.19567394594586,
+              lat: 34.05817696639957
+            },
+            {
+              lng: -117.1956777315698,
+              lat: 34.0585156321181
+            },
+            {
+              lng: -117.19568151719375,
+              lat: 34.05885429783663
+            },
+            {
+              lng: -117.1956853028177,
+              lat: 34.05919296355516
+            },
+            {
+              lat: 34.059192963555134,
+              lng: -117.19568530281771
+            },
+            {
+              lat: 34.05920092649827,
+              lng: -117.19575894615099
+            },
+            {
+              lng: -117.19575574232981,
+              lat: 34.058861053180614
+            },
+            {
+              lng: -117.19575253850863,
+              lat: 34.05852117986296
+            },
+            {
+              lng: -117.19574933468745,
+              lat: 34.0581813065453
+            },
+            {
+              lng: -117.19574613086627,
+              lat: 34.057841433227644
+            },
+            {
+              lng: -117.19574292704509,
+              lat: 34.05750155990999
+            },
+            {
+              lng: -117.19573972322391,
+              lat: 34.05716168659233
+            },
+            {
+              lng: -117.19573651940273,
+              lat: 34.056821813274674
+            },
+            {
+              lng: -117.19573331558155,
+              lat: 34.05648193995702
+            },
+            {
+              lat: 34.05648193995701,
+              lng: -117.19573331558153
+            },
+            {
+              lng: -117.19569416670383,
+              lat: 34.056482788881965
+            },
+            {
+              lng: -117.19565501782613,
+              lat: 34.05648363780692
+            }],
+            currentCoordIndex = 0;
+
+          geolocate.use();
+
+          setInterval(function() {
+            geolocate.change(coords[currentCoordIndex]);
+            currentCoordIndex = (currentCoordIndex + 1) % coords.length;
+          }, 1500);
+
+        }
+
+      });
+
+      onclick("showTacticalTeamsButton", function() {
+        tacticalOpPlanLayer.visible = true;
+      });
+
+      onclick("showLocationButton", function() {
+        view.goTo(locationTrackingCamera);
+        track.start();
+      });
+
+      var prevLocation = null;
+      onclick("trackLocationButton", function() {
+        if (prevLocation) {
+          return;
+        }
+
+        prevLocation = view.center
+        track.on("track", function() {
+          var location = track.graphic.geometry;
+
+          var angleInDegrees = Math.atan2(location.y - prevLocation.y, location.x - prevLocation.x) * 180 / Math.PI;
+          var heading = -90 + angleInDegrees;
+
+          view.goTo({
+            center: location,
+            tilt: 60,
+            scale: 1200,
+            heading: 360 - heading
+          }, { duration: 1000 });
+
+          prevLocation = location.clone();
+        });
+      });
+
+    });
+
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+</body>
+
+</html>

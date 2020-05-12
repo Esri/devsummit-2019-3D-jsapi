@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Mesh Scene Layer</title>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.8/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.8/"></script>
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/SceneView",
+      "esri/layers/SceneLayer",
+      "esri/renderers/SimpleRenderer",
+      "esri/symbols/MeshSymbol3D",
+      "dojo/domReady!"
+    ], function(Map, SceneView, SceneLayer,
+      SimpleRenderer, MeshSymbol3D
+    ) {
+      // Create Map
+      var map = new Map({
+        basemap: "dark-gray",
+        ground: "world-elevation",
+      });
+
+      // Create the SceneView and add the map
+      var view = new SceneView({
+        container: "viewDiv",
+        map: map,
+        camera: {
+          position: {
+            x: -8241124,
+            y: 4968029,
+            z: 380,
+            spatialReference: 3857
+          },
+          heading: 58,
+          tilt: 86
+        },
+        environment: {
+          lighting: {
+            ambientOcclusionEnabled: true,
+            directShadowsEnabled: true
+          }
+        }
+      });
+
+      // Create SceneLayer and add to the map
+      var sceneLayer = new SceneLayer({
+        url: "https://tiles.arcgis.com/tiles/V6ZHFr6zdgNZuVG0/arcgis/rest/services/NYCatt/SceneServer",
+      });
+
+      map.add(sceneLayer);
+
+
+      window.applySimpleRenderer = () => {
+        sceneLayer.renderer = {
+          type: "simple",
+          symbol: {
+            type: "mesh-3d",
+            symbolLayers: [{
+              type: "fill",
+              material: {
+                color: [144, 238, 144, 0.3]
+              }
+            }]
+          }
+        };
+      };
+
+      window.applyComplexRenderer = () => {
+        sceneLayer.renderer = {
+          type: "simple",
+          symbol: {
+            type: "mesh-3d",
+            symbolLayers: [{
+              type: "fill"
+            }]
+          },
+          "visualVariables": [
+            {
+              "type": "color",
+              "field": "CNSTRCT_YR",
+              "stops": [
+                {
+                  "value": 1867,
+                  "color": [
+                    69,
+                    83,
+                    122,
+                    255
+                  ],
+                  "label": "< 1,867"
+                },
+                {
+                  "value": 1902.5,
+                  "color": [
+                    78,
+                    109,
+                    189,
+                    255
+                  ]
+                },
+                {
+                  "value": 1938,
+                  "color": [
+                    86,
+                    134,
+                    255,
+                    255
+                  ],
+                  "label": "1,938"
+                },
+                {
+                  "value": 1973.5,
+                  "color": [
+                    150,
+                    184,
+                    254,
+                    255
+                  ]
+                },
+                {
+                  "value": 2009,
+                  "color": [
+                    230,
+                    245,
+                    250,
+                    255
+                  ],
+                  "label": "> 2,009"
+                }
+              ]
+            }
+          ]
+        };
+      };
+
+      window.resetFilter = () => {
+        console.log('reset');
+        sceneLayer.definitionExpression = "";
+      };
+
+      // presentation specific
+      view.when(() => {
+        if (window.parent) {
+          window.parent.demo = window;
+
+          var button01 = window.parent.document.getElementById("mesh-renderer-button01");
+          if (button01) {
+            button01.onclick = window.applySimpleRenderer;
+          }
+
+          var button02 = window.parent.document.getElementById("mesh-renderer-button02");
+          if (button02) {
+            button02.onclick = window.applyComplexRenderer;
+          }
+        }
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+</body>
+
+</html>

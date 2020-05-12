@@ -1,0 +1,46 @@
+<script>
+function snippet(containers, interlinks) {
+  require([
+    "esri/Map",
+    "esri/views/SceneView"
+  ], function(
+    Map,
+    SceneView
+  ) {
+
+    var view = new SceneView({
+      container: containers.viewDiv,
+
+      map: new Map({
+        basemap: "gray"
+      }),
+
+      alphaCompositingEnabled: true,
+      environment: {
+        background: {
+          type: "color",
+          color: [0, 0, 0, 0]
+        },
+        starsEnabled: false,
+        atmosphereEnabled: false
+      },
+
+      center: [0, 0],
+      scale: 125121701.31003162,
+
+      ui: null
+    });
+
+    window.parent.view = view;
+  });
+}
+
+
+settings = {
+  disableOverviewMap: true,
+  disableLog: true
+};
+
+</script>
+
+<script src="./support/snippet.js"></script>

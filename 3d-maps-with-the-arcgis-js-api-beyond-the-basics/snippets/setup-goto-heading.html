@@ -1,0 +1,51 @@
+<script>
+function snippet(containers, interlinks) {
+  require([
+    "esri/Map",
+    "esri/views/SceneView"
+  ], function(
+    Map,
+    SceneView
+  ) {
+
+    var view = new SceneView({
+      container: containers.viewDiv,
+
+      map: new Map({
+        basemap: "hybrid",
+        ground: "world-elevation"
+      }),
+
+      camera: {
+        position: {
+          x: 8.062,
+          y: 46.042,
+          z: 14813.5
+        },
+        heading: 0,
+        tilt: 80
+      }
+    });
+
+    view.watch("camera", function(camera) {
+      interlinks.log("Heading:", Math.round(camera.heading));
+    });
+
+    interlinks.playButton = function() {
+      var heading = view.camera.heading + 30;
+
+      view.goTo({
+        heading: heading
+      });
+    }
+
+  });
+}
+
+settings = {
+  disableOverviewMap: true
+};
+
+</script>
+
+<script src="./support/snippet.js"></script>

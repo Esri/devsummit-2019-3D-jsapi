@@ -1,0 +1,107 @@
+<script>
+function snippet(containers, interlinks) {
+  require([
+    "esri/Map",
+    "esri/views/SceneView",
+    "esri/Camera",
+    "esri/Graphic",
+    "esri/geometry/Point"
+  ], function(
+    Map,
+    SceneView,
+    Camera,
+    Graphic,
+    Point
+  ) {
+
+    const initialCamera = new Camera({
+      position: {
+        x: -12969535,
+            y: 4004700,
+            z: 8000,
+            spatialReference: 102100
+      }
+    });
+
+    const view = new SceneView({
+      container: containers.viewDiv,
+
+      map: new Map({
+        basemap: "topo",
+        ground: "world-elevation"
+      }),
+
+      camera: initialCamera
+    });
+
+    function createGraphics() {
+      const sym = {
+        type: "point-3d",
+        symbolLayers: [{
+          type: "object",
+          height: 50,
+          resource: { primitive: "inverted-cone" },
+          material: { color: "red" }
+        }]
+      };
+
+      const locations = [
+        [-12973118, 4005565],
+        [-12972831, 4005564],
+        [-12972833, 4005086],
+        [-12973379, 4005082],
+        [-12973379, 4005315],
+        [-12973122, 4005319]
+      ];
+
+      return locations.map((xy) => {
+        return new Graphic({
+          geometry: new Point({
+            x: xy[0],
+            y: xy[1],
+            spatialReference: 102100
+          }),
+          symbol: sym
+        });
+      });
+    }
+
+    const graphics = createGraphics();
+
+    view.when(() => {
+      view.graphics.addMany(graphics);
+    });
+
+    view.watch("camera", function(camera) {
+      interlinks.log("scale:", Math.round(view.scale / 1000) * 1000, ", heading:", Math.round(camera.heading), ", tilt:", Math.round(camera.tilt));
+    });
+
+    let isFramed = false;
+
+    interlinks.playButton = () => {
+      if (!isFramed) {
+        view.goTo({
+          target: view.graphics,
+          scale: 5000,
+          heading: 30,
+          tilt: 70
+        });
+        isFramed = true;
+      } else {
+        view.camera = initialCamera.clone();
+        isFramed = false;
+      }
+    };
+
+    window.parent.view = view;
+
+  });
+}
+
+settings = {
+  disableOverviewMap: true
+};
+
+</script>
+
+<script src="./support/snippet.js"></script>

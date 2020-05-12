@@ -1,0 +1,157 @@
+<script>
+  function snippet(containers, interlinks) {
+    require([
+      "dojo/promise/all",
+      "esri/geometry/Polygon",
+      "esri/Map",
+      "esri/Graphic",
+      "esri/layers/FeatureLayer",
+      "esri/layers/SceneLayer",
+      "esri/views/SceneView",
+      "esri/renderers/SimpleRenderer",
+      "esri/symbols/WebStyleSymbol",
+      "esri/symbols/PointSymbol3D",
+      "esri/symbols/IconSymbol3DLayer",
+      "esri/widgets/Sketch/SketchViewModel",
+      "esri/views/layers/support/FeatureFilter"
+    ], function (
+      all,
+      Polygon,
+      Map,
+      Graphic,
+      FeatureLayer,
+      SceneLayer,
+      SceneView,
+      SimpleRenderer,
+      WebStyleSymbol,
+      PointSymbol3D,
+      IconSymbol3DLayer,
+      SketchViewModel,
+      FeatureFilter
+    ) {
+
+      var trees = new FeatureLayer("https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/Tree_Census_2015/FeatureServer");
+      trees.renderer = new SimpleRenderer({
+        symbol: new WebStyleSymbol({
+          name: "Abies",
+          styleName: "EsriThematicTreesStyle"
+        })
+      });
+
+      var buildings = new SceneLayer("https://tiles.arcgis.com/tiles/WQ9KVmV6xGGMnCiQ/arcgis/rest/services/NYC3D_AGO_Z_BFCull/SceneServer");
+      buildings.renderer = {
+        type: "simple",
+        symbol: {
+          type: "mesh-3d",
+          symbolLayers: [{
+            type: "fill",
+            enabled: true,
+            edges: {
+              type: "solid",
+              color: [0, 0, 0]
+            },
+            material: {
+              color: [255, 255, 250]
+            }
+          }]
+        }
+      };
+
+      var view = new SceneView({
+        container: containers.viewDiv,
+
+        map: new Map({
+          basemap: "topo-vector",
+          ground: "world-elevation",
+          layers: [trees, buildings]
+        }),
+
+        camera: {
+          position: {
+            x: -8235500,
+            y: 4961500,
+            z: 200,
+            spatialReference: {
+              latestWkid: 3857,
+              wkid: 102100
+            }
+          },
+          heading: 5,
+          tilt: 83
+        }
+      });
+
+      view.pixelRatio = 2;
+      view.qualitySettings.memoryLimit = 400;
+
+      view.watch("updatingPercentage", function () {
+        var mc = view.resourceController.memoryController;
+        var overview = "" + Math.round(mc._memoryUsed * 100) + "% of " + Math.round(mc._maxMemory) + "MB at " +
+          Math.round(mc.memoryFactor * 100) + "% quality";
+
+        if (view && view.basemapTerrain && view.basemapTerrain.getUsedMemory) {
+          var mb = view.basemapTerrain.getUsedMemory() / 1024 / 1024;
+          overview += "\r\nTerrain: " + Math.round(mb / mc._maxMemory * 100) + "%";
+        }
+
+        view.allLayerViews.items.forEach(function (lv) {
+          if (typeof lv["getUsedMemory"] === "function") {
+            var mb = lv.getUsedMemory() / 1024 / 1024;
+            overview += "\r\n" + lv.layer.title + ": " + Math.round(mb / mc._maxMemory * 100) + "%";
+          }
+        });
+
+        var edgeView = view && view._stage && view._stage.view && view._stage.view.edgeView;
+        if (edgeView) {
+          var mb = edgeView.getUsedMemory() / 1024 / 1024;
+          overview += "\r\nEdges:" + Math.round(mb / mc._maxMemory * 100) + "%";
+        }
+
+        interlinks.log(overview);
+      });
+
+      onclick("frame-memory1", function() {
+        view.map.basemap = "topo";
+        i = 1;
+      });
+
+      onclick("frame-memory2", function() {
+        view.whenLayerView(trees).then(function (lv) {
+          lv.maximumNumberOfFeatures = 10000;
+        });
+      });
+
+      onclick("frame-memory3", function() {
+        buildings.renderer = {
+          type: "simple",
+          symbol: {
+            type: "mesh-3d",
+            symbolLayers: [{
+              type: "fill",
+              enabled: true,
+              material: {
+                color: [205, 205, 200]
+              }
+            }]
+          }
+        };
+      });
+
+      function onclick(buttonId, onclick) {
+        var button = window.parent.document.getElementById(buttonId);
+        if (button && onclick) {
+          button.onclick = function() {
+            view.when(onclick).catch(console.error);
+          };
+        }
+      }
+    });
+  }
+
+  settings = {
+    disableOverviewMap: true
+  };
+
+</script>
+
+<script src="./support/snippet.js"></script>

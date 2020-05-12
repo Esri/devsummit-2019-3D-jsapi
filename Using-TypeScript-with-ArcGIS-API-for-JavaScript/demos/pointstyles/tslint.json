@@ -1,0 +1,70 @@
+{
+  "rules": {
+    "align": false,
+    "arrow-return-shorthand": [true, "multiline"],
+    "ban": [
+      true,
+      {
+        "name": ["*", "Promise", "otherwise"],
+        "message": "Use .catch() instead"
+      }
+    ],
+    "class-name": true,
+    "comment-format": false,
+    "curly": true,
+    "forin": false,
+    "interface-name": false,
+    "jsdoc-format": true,
+    "import-blacklist": [
+      true,
+      "dojo/_base/array",
+      "dojo/_base/lang",
+      "dojo/_base/Color",
+      "dojo/_base/url",
+      "dojo/promise/all",
+      "dojo/promise/first",
+      "dojo/promise/Promise",
+      "dojo/Deferred",
+      "dojo/colors",
+      "dojo/when",
+      "dojo/has"
+    ],
+    "label-position": true,
+    "member-access": false,
+    "member-ordering": false,
+    "new-parens": true,
+    "no-any": false,
+    "no-arg": true,
+    "no-bitwise": false,
+    "no-conditional-assignment": true,
+    "no-console": false,
+    "no-construct": true,
+    "no-debugger": true,
+    "no-default-export": false,
+    "no-duplicate-variable": true,
+    "no-empty": false,
+    "no-eval": true,
+    "no-inferrable-types": false,
+    "no-internal-module": true,
+    "no-require-imports": false,
+    "no-return-await": true,
+    "no-shadowed-variable": false,
+    "no-string-literal": false,
+    "no-switch-case-fall-through": false,
+    "no-unnecessary-class": false,
+    "no-unused-expression": false,
+    "no-use-before-declare": false,
+    "no-var-keyword": true,
+    "no-var-requires": false,
+    "object-literal-shorthand": true,
+    "prefer-const": true,
+    "radix": true,
+    "switch-default": false,
+    "triple-equals": [true, "allow-null-check"],
+    "typedef": [true, "call-signature"],
+    "variable-name": false
+  },
+  "linterOptions": {
+    "exclude": ["esri/components/**", "esri/libs/amcharts4/lang/**", "tests/memoryTests/scripts/**"]
+  }
+}

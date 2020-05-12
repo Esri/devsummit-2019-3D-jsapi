@@ -1,0 +1,151 @@
+<script type="text/javascript" src="./data/satellite.min.js"></script>
+
+<script>
+function snippet(containers, interlinks) {
+  require([
+    "esri/Map",
+    "esri/Graphic",
+    "esri/request",
+    "esri/geometry/Point",
+    "esri/symbols/PointSymbol3D",
+    "esri/views/SceneView"
+  ], function(
+    Map,
+    Graphic,
+    esriRequest,
+    Point,
+    PointSymbol3D,
+    SceneView
+  ) {
+
+    const view = new SceneView({
+      container: containers.viewDiv,
+
+      map: new Map({
+        basemap: "satellite",
+        ground: "world-elevation"
+      }),
+
+      camera: {
+        position: {
+          x: 18.872,
+          y: 16.05,
+          z: 24278278.59
+        },
+        heading: 0,
+        tilt: 0.1
+      }
+    });
+
+    const symbol = new PointSymbol3D({
+      symbolLayers: [
+        {
+          type: "icon",
+          size: 2,
+          resource: { primitive: "circle" },
+          material: { color: "white" }
+        }
+      ]
+    });
+
+    loadSatellites()
+        .then((positions) => {
+          return view.when(() => {
+            const graphics = positions.map((position) => new Graphic({
+              geometry: new Point({
+                x: position[0],
+                y: position[1],
+                z: position[2],
+                spatialReference: view.renderSpatialReference
+              }),
+              symbol: symbol
+            }));
+
+            view.graphics.addMany(graphics);
+          });
+        });
+
+
+
+    view.watch(["camera"], () => {
+      interlinks.log("Altitude", Math.round(view.camera.position.z / 1000) + " km, Clipping: ", Math.round(view.constraints.clipDistance.near / 1000), " km \/ ", Math.round(view.constraints.clipDistance.far / 1000) + " km");
+    });
+
+    onclick("frame-constraints-altitude", function() {
+      view.constraints.altitude = {
+        min: 10000000,
+        max: 100000000
+      };
+    });
+
+    onclick("frame-constraints-clipDistance", function() {
+      view.constraints.clipDistance = {
+        near: 200000,
+        far: 200000000
+      };
+    });
+
+    function onclick(buttonId, onclick) {
+      var button = window.parent.document.getElementById(buttonId);
+      if (button && onclick) {
+        button.onclick = function() {
+          view.when(onclick).catch(console.error);
+        };
+      }
+    }
+
+
+    function loadSatellites() {
+      var date = new Date();
+
+      return esriRequest("./data/satellites.txt", { responseType: "text" }).then((response) => {
+        var lines = response.data.split('\n');
+        var count = (lines.length / 2).toFixed(0);
+        var result = [];
+        for (var i = 0; i < count; i++) {
+          var line1 = lines[i * 2 + 0];
+          var line2 = lines[i * 2 + 1];
+          var satrec = null;
+
+          try {
+            satrec = satellite.twoline2satrec(line1, line2);
+          }
+          catch (err) {
+            continue;
+          }
+
+          if (satrec == null) {
+            continue;
+          }
+
+          var position_and_velocity = satellite.propagate(
+              satrec,
+              date.getUTCFullYear(),
+              date.getUTCMonth() + 1,
+              date.getUTCDate(),
+              date.getUTCHours(),
+              date.getUTCMinutes(),
+              date.getUTCSeconds()
+          );
+
+          var position = position_and_velocity.position;
+
+          if (position == null || !isFinite(position.x) || !isFinite(position.y) || !isFinite(position.z)) {
+            continue;
+          }
+
+          result.push([position.x * 1000, position.y * 1000, position.z * 1000]);
+        }
+        return result;
+      });
+    }
+  });
+
+}
+
+settings = {
+  disableOverviewMap: true
+};
+</script>
+
+<script src="./support/snippet.js"></script>

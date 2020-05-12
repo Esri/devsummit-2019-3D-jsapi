@@ -1,0 +1,23 @@
+{
+  "name": "pointstyles",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "tsfix": "tslint --fix *.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "dojo-typings": "^1.11.9",
+    "prettier": "^1.16.4",
+    "tslint": "^5.13.1",
+    "typescript": "^2.7.2"
+  },
+  "dependencies": {
+    "@types/arcgis-js-api": "^4.10.0"
+  }
+}

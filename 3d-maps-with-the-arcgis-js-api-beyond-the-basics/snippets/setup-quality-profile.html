@@ -1,0 +1,140 @@
+<script>
+function snippet(containers, interlinks) {
+  require([
+    "dojo/promise/all",
+    "esri/core/scheduling",
+    "esri/Map",
+    "esri/layers/SceneLayer",
+    "esri/views/SceneView"
+  ], function(
+    all,
+    scheduling,
+    Map,
+    SceneLayer,
+    SceneView
+  ) {
+
+    var map = new Map({
+      basemap: "hybrid",
+      ground: "world-elevation",
+
+      layers: [
+        new SceneLayer("https://tiles.arcgis.com/tiles/z2tnIkrLQ2BRzr6P/arcgis/rest/services/SanFrancisco_Bldgs/SceneServer")
+      ]
+    });
+
+    document.body.appendChild(create("div", {
+      id: "viewDivLeft"
+    }));
+
+    viewLeft = new SceneView({
+      map: map,
+      container: "viewDivLeft",
+      qualityProfile: "low",
+
+      environment: {
+        atmosphere: {
+          quality: "low"
+        },
+
+        lighting: {
+          directShadowsEnabled: false,
+          ambientOcclusionEnabled: false,
+          date: new Date("Sun Mar 15 2015 17:00:00 GMT-8 (CET)")
+        }
+      },
+
+      camera: {
+        position: {
+          longitude: -122.38401746475886,
+          latitude: 37.78800763569696,
+          z: 219.1219386951998
+        },
+        heading: 257.3971059284579,
+        tilt: 82.91710420486955
+      }
+    });
+
+    document.body.appendChild(create("div", {
+      id: "viewDivRight"
+    }));
+
+    viewRight = new SceneView({
+      map: map,
+      container: "viewDivRight",
+      qualityProfile: "high",
+
+      environment: {
+        atmosphere: {
+          quality: "high"
+        },
+
+        lighting: {
+          directShadowsEnabled: true,
+          ambientOcclusionEnabled: true,
+          date: new Date("Sun Mar 15 2015 17:00:00 GMT-8 (CET)")
+        }
+      },
+
+      camera: {
+        position: {
+          longitude: -122.38401746475886,
+          latitude: 37.78800763569696,
+          z: 219.1219386951998
+        },
+        heading: 257.3971059284579,
+        tilt: 82.91710420486955
+      }
+    });
+
+    all([viewLeft, viewRight]).then(function() {
+      viewLeft.watch("camera", function(camera) {
+        if (viewLeft.interacting || viewLeft.animation) {
+          viewRight.camera = camera;
+        }
+      });
+
+      viewRight.watch("camera", function(camera) {
+        if (viewRight.interacting || viewRight.animation) {
+          viewLeft.camera = camera;
+        }
+      });
+    });
+
+
+    var playing;
+
+    interlinks.playButton = function() {
+      if (playing) {
+        playing.remove();
+        playing = null;
+        viewLeft.environment.lighting.date = new Date("Sun Mar 15 2015 12:00:00 GMT-8 (CET)");
+        viewRight.environment.lighting.date = new Date("Sun Mar 15 2015 12:00:00 GMT-8 (CET)");
+        return;
+      }
+
+      var i = 0;
+      playing = scheduling.addFrameTask({
+        update: function(ev) {
+          var date = new Date("Sun Mar 15 2015 17:00:00 GMT-8 (CET)");
+          var epoch = date.getTime() + (i++ % 240) * 1000 * 60;
+          date.setTime(epoch);
+          console.log(date);
+          viewLeft.environment.lighting.date = date;
+          viewRight.environment.lighting.date = date;
+        }
+      });
+    }
+
+  });
+}
+
+settings = {
+  disableOverviewMap: true,
+  disableLog: true,
+  disableViewDiv: true
+};
+
+</script>
+
+<script src="./support/snippet.js"></script>

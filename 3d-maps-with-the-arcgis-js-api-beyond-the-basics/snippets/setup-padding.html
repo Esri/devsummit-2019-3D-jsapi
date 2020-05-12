@@ -1,0 +1,52 @@
+<script>
+function snippet(containers, interlinks) {
+  require([
+    "esri/Map",
+    "esri/views/SceneView"
+  ], function(
+    Map,
+    SceneView
+  ) {
+
+    var view = new SceneView({
+      container: containers.viewDiv,
+
+      map: new Map({
+        basemap: "satellite",
+        ground: "world-elevation"
+      }),
+
+      center: [0, 0],
+      scale: 125121701.31003162
+    });
+
+    var viewDiv = containers.viewDiv;
+
+    viewDiv.appendChild(create("div", {
+      style: "position: absolute; top: 0; height: 50px; left: 0; right: 0; background: rgba(255, 255, 255, 0.8);"
+    }));
+
+    viewDiv.appendChild(create("div", {
+      style: "position: absolute; top: 50px; bottom: 0; left: 0; width: 250px; background: rgba(255, 255, 255, 0.8);"
+    }));
+
+    interlinks.playButton = function() {
+      view.padding = {
+        top: 50,
+        left: 250
+      };
+    };
+
+    window.parent.view = view;
+  });
+}
+
+
+settings = {
+  disableOverviewMap: true,
+  disableLog: true
+};
+
+</script>
+
+<script src="./support/snippet.js"></script>

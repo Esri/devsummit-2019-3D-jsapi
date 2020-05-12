@@ -1,0 +1,110 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+    <title>External 3D Volume Renderer</title>
+    <style>
+      #editor {
+        left: 10;
+        top: 10;
+        position: absolute;
+        z-index: 5;
+      }
+
+      #view {
+        width: 100%;
+        height: 100%;
+      }
+
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      #disclaimer {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+
+        background-image: url('background.jpg');
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+
+      #disclaimer > div {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.10/esri/css/main.css">
+    <link
+      rel="stylesheet"
+      href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.3/css/calcite-web.min.css"
+    />
+
+    <!-- External webgl-volume-raycaster -->
+    <script src="./app/webgl-volume-raycaster/js/gl-matrix-min.js"></script>
+    <script src="./app/webgl-volume-raycaster/js/webgl-util.js"></script>
+    <script src="./app/webgl-volume-raycaster/js/shader-srcs.js"></script>
+    <script src="./app/webgl-volume-raycaster/js/volume-raycaster.js"></script>
+
+    <script>
+      var locationPath = location.pathname.replace(/\/[^\/]+$/, "");
+      window.dojoConfig = {
+        packages: [
+          {
+            name: "app",
+            location: locationPath + "/app"
+          },
+          {
+            name: "gl-matrix",
+            location: "https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.3.2",
+            main: "gl-matrix-min"
+          }
+        ]
+      };
+    </script>
+    <script src="https://js.arcgis.com/4.11"></script>
+  </head>
+
+  <body>
+    <script>
+      var app;
+      require([
+        "https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.3/js/calcite-web.min.js",
+        "app/Application",
+        "dojo/domReady!"
+      ], function(calcite, Application) {
+        calcite.init();
+
+        document.getElementById("startApp").onclick = function() {
+          document.getElementById("disclaimer").classList.add("hide");
+          var app = new Application();
+        };
+      });
+    </script>
+    <div id="view">
+      <div id="filterbyAttributes" class="filter-fields"><select id="dataList" class="options"></select></div>
+      <div id="playButton" class="esri-widget esri-widget--button esri-interactive" title="Play/Pause"><span id="playButtonIcon" class="esri-icon-play"></span></div>
+    </div>
+    <div id="disclaimer">
+      <div class="column-8">
+        <div class="card card-bar-blue block trailer-1">
+          <div class="card-content">
+            <h4>External Renderer Demo</h4>
+            <p class="font-size--1">Please note, this app requires WebGL2 and performs best when run
+              locally on a desktop due to the large dataset (1 GB per visualization) of the hurricane.</br>
+              See the <a href="https://github.com/Esri/devsummit-2019-3D-jsapi/#installing">
+              GitHub repository</a> for more information.</p>
+            <p class="font-size--1 card-last"><strong>Once the demo is loaded, you can toggle the animation with <code>space</code> or through the play button in the menu.</strong></p>
+            <a id="startApp" href="#" class="btn btn-fill leader-1">Continue</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

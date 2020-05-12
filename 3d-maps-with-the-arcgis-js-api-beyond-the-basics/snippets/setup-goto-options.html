@@ -1,0 +1,124 @@
+<script>
+function snippet(containers, interlinks) {
+  require([
+    "esri/Map",
+    "esri/views/SceneView",
+    "esri/Camera",
+    "esri/Graphic",
+    "esri/geometry/Point",
+    "esri/core/promiseUtils"
+  ], function(
+    Map,
+    SceneView,
+    Camera,
+    Graphic,
+    Point,
+    promiseUtils
+  ) {
+
+    const initialCamera = new Camera({
+      position: {
+        x: -12969535,
+        y: 4004700,
+        z: 8000,
+        spatialReference: 102100
+      }
+    });
+
+    const view = new SceneView({
+      container: containers.viewDiv,
+
+      map: new Map({
+        basemap: "topo",
+        ground: "world-elevation"
+      }),
+
+      camera: initialCamera
+    });
+
+    function createGraphics() {
+      const sym = {
+        type: "point-3d",
+        symbolLayers: [{
+          type: "object",
+          height: 50,
+          resource: { primitive: "inverted-cone" },
+          material: { color: "red" }
+        }]
+      };
+
+      const locations = [
+        [-12973118, 4005565],
+        [-12972831, 4005564],
+        [-12972833, 4005086],
+        [-12973379, 4005082],
+        [-12973379, 4005315],
+        [-12973122, 4005319]
+      ];
+
+      return locations.map((xy) => {
+        return new Graphic({
+          geometry: new Point({
+            x: xy[0],
+            y: xy[1],
+            spatialReference: 102100
+          }),
+          symbol: sym
+        });
+      });
+    }
+
+    const graphics = createGraphics();
+
+    view.when(() => {
+      view.graphics.addMany(graphics);
+    });
+
+
+    const goToTarget = {
+      target: view.graphics,
+      scale: 5000,
+      heading: 30,
+      tilt: 70
+    };
+
+    onclick("frame-goto-options-speed", function() {
+      view.goTo(goToTarget, { speedFactor: 2 }).then(resetAfterDelay);
+      interlinks.log("speedFactor: 2")
+    });
+
+    onclick("frame-goto-options-duration", function() {
+      view.goTo(goToTarget, { duration: 5000 }).then(resetAfterDelay);
+      interlinks.log("duration: 5000")
+    });
+
+    onclick("frame-goto-options-easing", function() {
+      view.goTo(goToTarget, { easing: "linear" }).then(resetAfterDelay);
+      interlinks.log("easing: linear")
+    });
+
+    function onclick(buttonId, onclick) {
+      var button = window.parent.document.getElementById(buttonId);
+      if (button && onclick) {
+        button.onclick = function() {
+          view.when(onclick).catch(console.error);
+        };
+      }
+    }
+
+    function resetAfterDelay() {
+      return promiseUtils.after(2000).then(() => {
+        view.camera = initialCamera.clone();
+        interlinks.log("");
+      })
+    }
+  });
+}
+
+settings = {
+  disableOverviewMap: true
+};
+
+</script>
+
+<script src="./support/snippet.js"></script>

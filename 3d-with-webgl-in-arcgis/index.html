@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+
+        <title>3D with WebGL in ArcGIS</title>
+
+        <link rel="stylesheet" href="../reveal.js/css/reveal.css">
+        <link rel="stylesheet" href="../themes/esri-dev-summit-2019.css" id="theme">
+
+        <!-- Code syntax highlighting -->
+        <link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+        <!-- Printing and PDF exports -->
+        <script>
+          var link = document.createElement( 'link' );
+          link.rel = 'stylesheet';
+          link.type = 'text/css';
+          link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal.js/css/print/pdf.css' : '../reveal.js/css/print/paper.css';
+          document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+
+        <!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section data-markdown="./presentation.md"></section>
+            </div>
+        </div>
+        <script src="../reveal.js/lib/js/head.min.js"></script>
+        <script src="../reveal.js/js/reveal.js"></script>
+        <script>
+          // Full list of configuration options available at:
+          // https://github.com/hakimel/reveal.js#configuration
+          window.Reveal.initialize({
+            //controls: true,
+            progress: true,
+            history: true,
+            center: true,
+            controls: false,
+            width: 1366,
+            height: 768,
+            pdfMaxPagesPerSlide: 1,
+            transition: 'fade', // none/fade/slide/convex/concave/zoom
+            // Optional reveal.js plugins
+            dependencies: [
+              { src: '../reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+              { src: '../reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+              { src: '../reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+              { src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { window.hljs.initHighlightingOnLoad(); } },
+              { src: '../reveal.js/plugin/zoom-js/zoom.js', async: true },
+              { src: '../reveal.js/plugin/notes/notes.js', async: true }
+            ]
+          });
+          window.Reveal.addEventListener('ready', function(event) {
+            var playButtons = document.querySelectorAll('[data-play-frame]');
+            for (var i = 0; i < playButtons.length; i++) {
+              playButtons[i].addEventListener('click', (function(playButton) {
+
+                var frameName = playButton.getAttribute('data-play-frame');
+                var frameArguments = playButton.getAttribute('data-play-attributes');
+                return function() {
+                  window.frames[frameName].contentWindow.postMessage({ play: true, arguments: frameArguments }, '*');
+                };
+              })(playButtons[i]));
+            }
+          });
+        </script>
+    </body>
+</html>

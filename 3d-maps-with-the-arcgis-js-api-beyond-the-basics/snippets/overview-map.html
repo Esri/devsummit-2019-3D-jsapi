@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Intro to SceneView - Create a 3D map - 4.10</title>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    #overviewDiv {
+      width: 400px;
+      height: 400px;
+
+      position: absolute;
+
+      bottom: 6px;
+      left: 6px;
+
+      filter: drop-shadow(4px 4px 3px rgba(0,0,0, 0.5));
+
+      pointer-events:none;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.11/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.11/"></script>
+
+  <script>
+
+    require([
+      "esri/Map",
+      "esri/views/SceneView",
+      "esri/views/MapView",
+      "esri/Camera",
+      "esri/Graphic",
+      "esri/geometry/Extent"
+    ], function(
+      Map,
+      SceneView,
+      MapView,
+      Camera,
+      Graphic,
+      Point,
+      promiseUtils
+    ) {
+
+      const map = new Map({
+        basemap: "topo"
+      });
+
+      const mainView = new MapView({
+        container: "viewDiv",
+        map: map,
+        center: [-80, 19],
+        scale: 10000000
+      });
+      window.mainView = mainView;
+
+      const overviewMap = new Map({
+        basemap: "topo"
+      });
+
+      const overviewView = new SceneView({
+        container: "overviewDiv",
+        map: overviewMap,
+
+        alphaCompositingEnabled: true,
+        environment: {
+          background: {
+            type: "color",
+            color: [0, 0, 0, 0]
+          },
+          starsEnabled: false,
+          atmosphereEnabled: false
+        },
+
+        ui: null
+      });
+      window.overviewView = overviewView;
+
+      var extentGraphic = createExtentGraphic();
+
+      overviewView.graphics.add(extentGraphic);
+
+      mainView.watch("extent", (extent) => {
+        overviewView.center = extent.center;
+
+        extentGraphic.geometry = extent.clone();
+      });
+
+      function createExtentGraphic() {
+        return new Graphic({
+          symbol: {
+            type: "polygon-3d",
+            symbolLayers: [{
+              type: "fill",
+              material: { color: [0, 0, 0, 0]},
+              outline: {
+                color: "black",
+                size: "2px"
+              }
+            }]
+          }
+        })
+      }
+
+    });
+  </script>
+</head>
+
+<body>
+<div id="viewDiv">
+  <div id="overviewDiv"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<script>
+function snippet(containers, interlinks) {
+  require([
+    "esri/Map",
+    "esri/views/SceneView",
+    "esri/layers/BuildingSceneLayer",
+    "esri/widgets/Slice",
+    "esri/widgets/DirectLineMeasurement3D"
+  ], function(
+    Map,
+    SceneView,
+    BuildingSceneLayer,
+    Slice,
+    DirectLineMeasurement3D
+  ) {
+
+    var view = new SceneView({
+      container: containers.viewDiv,
+
+      map: new Map({
+        basemap: "topo",
+        ground: "world-elevation"
+      }),
+
+      camera: {
+        position: {
+          spatialReference: {
+            wkid: 102100
+          },
+          x: -13045101,
+          y: 4036772,
+          z: 456
+        },
+        heading: 320,
+        tilt: 67.8
+      }
+    });
+
+    const buildingLayer = new BuildingSceneLayer({
+      portalItem: {
+        id: "fca0557a79c645e6843b00a7b55ce511"
+      }
+    });
+    view.map.layers.add(buildingLayer);
+
+    buildingLayer.load().then(() => {
+      buildingLayer.allSublayers.forEach(function(layer) {
+        // modelName is standard accross all BuildingSceneLayer,
+        // use it to identify a certain layer
+        switch (layer.modelName) {
+            // Because of performance reasons, the Full Model view is
+            // by default set to false. In this scene the Full Model should be visible.
+          case "FullModel":
+            layer.visible = true;
+            break;
+          case "Overview":
+            layer.visible = false;
+            break;
+            // Extract the layers that should not be hidden by the slice widget
+          case "Doors":
+            doorsLayer = layer;
+            excludedLayers.push(layer);
+          case "StructuralColumns":
+          case "Floors":
+          case "Furniture":
+          case "CurtainWallPanels":
+            excludedLayers.push(layer);
+            break;
+        }
+      });
+    });
+
+    sliceWidget = new Slice({
+      view: view
+    });
+    view.ui.add(sliceWidget, "top-right");
+
+    interlinks.playButton = function() {
+      var msmtWidget = new DirectLineMeasurement3D({
+        view: view
+      });
+      view.ui.add(msmtWidget, "top-right");
+    };
+
+    window.parent.view = view;
+  });
+}
+
+
+settings = {
+  disableOverviewMap: true,
+  disableLog: true
+};
+
+</script>
+
+<script src="./support/snippet.js"></script>

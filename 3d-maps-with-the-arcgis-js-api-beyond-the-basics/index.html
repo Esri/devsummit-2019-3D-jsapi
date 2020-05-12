@@ -1,0 +1,110 @@
+<!doctype html>
+<!-- Copyright (c) 2018 Environmental Systems Research Institute, Inc.
+     Apache-2.0 -->
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Interactive 3D Maps with ArcGIS API for JavaScript: Beyond the Basics</title>
+  <meta name="description" content="Learn how you can leverage the WebGL capabilities of your browser with the JavaScript API to build stunning 3D web applications. This session will focus on more advanced aspects like: camera operations, atmosphere and lighting and performance. Also learn how to extend the API with custom WebGL code and integrate it with frameworks like Three.js.">
+
+  <meta name="author" content="Johannes Schmid">
+  <meta name="author" content="Stefan Eilemann">
+  <link rel="stylesheet" href="../reveal.js/css/reveal.css">
+  <link rel="stylesheet" href="./themes/esri-dev-summit-2019.css" id="theme">
+  <link rel="stylesheet" href="./themes/custom.css">
+
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match(/print-pdf/gi) ? '../reveal.js/css/print/pdf.css' : '../reveal.js/css/print/paper.css';
+    document.getElementsByTagName('head')[0].appendChild(link);
+
+  </script>
+</head>
+
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section data-markdown="./presentation.md"></section>
+    </div>
+    <div class="footer">
+      <a href="https://github.com/esri/devsummit-2019-3D-jsapi/tree/master/presentations/3d-maps-with-the-arcgis-js-api-beyond-the-basics">https://github.com/esri/devsummit-2019-3D-jsapi</a>
+    </div>
+  </div>
+
+  <script src="../reveal.js/lib/js/head.min.js"></script>
+  <script src="../reveal.js/js/reveal.js"></script>
+
+  <script>
+    // More info about config & dependencies:
+    // - https://github.com/hakimel/reveal.js#configuration
+    // - https://github.com/hakimel/reveal.js#dependencies
+    Reveal.initialize({
+      // This height and width are here for the left-aligned title slide.
+      // If you do not want that, you can remove these two settings and
+      // the presentation will be closer to OOTB-Reveal.js:
+      width: 1366,
+      height: 768,
+
+      history: true,
+      dependencies: [{
+          src: '../reveal.js/lib/js/classList.js',
+          condition: function () {
+            return !document.body.classList;
+          }
+        },
+        {
+          src: '../reveal.js/plugin/markdown/marked.js',
+          condition: function () {
+            return !!document.querySelector('[data-markdown]');
+          }
+        },
+        {
+          src: '../reveal.js/plugin/markdown/markdown.js',
+          condition: function () {
+            return !!document.querySelector('[data-markdown]');
+          }
+        },
+        {
+          src: '../reveal.js/plugin/highlight/highlight.js',
+          async: true,
+          callback: function () {
+            window.hljs.initHighlightingOnLoad();
+          }
+        },
+        {
+          src: '../reveal.js/plugin/zoom-js/zoom.js',
+          async: true
+        },
+        {
+          src: '../reveal.js/plugin/notes/notes.js',
+          async: true
+        }
+      ]
+    });
+
+    window.Reveal.addEventListener('ready', function (event) {
+      var playButtons = document.querySelectorAll('[data-play-frame]');
+      for (var i = 0; i < playButtons.length; i++) {
+        playButtons[i].addEventListener('click', (function (frameName) {
+          return function () {
+            window.frames[frameName].contentWindow.postMessage({
+              play: true
+            }, '*');
+          };
+        })(playButtons[i].getAttribute('data-play-frame')));
+      }
+    });
+
+  </script>
+</body>
+
+</html>

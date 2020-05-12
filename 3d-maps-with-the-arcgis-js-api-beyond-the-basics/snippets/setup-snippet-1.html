@@ -1,0 +1,94 @@
+<script>
+function snippet(containers, interlinks) {
+  require([
+    "esri/Map",
+    "esri/WebScene",
+    "esri/views/SceneView",
+    "esri/views/MapView",
+    "esri/layers/PointCloudLayer",
+    "esri/renderers/PointCloudRGBRenderer",
+    "esri/renderers/PointCloudUniqueValueRenderer"
+  ], function(
+    Map,
+    WebScene,
+    SceneView,
+    MapView,
+    PointCloudLayer,
+    PointCloudRGBRenderer,
+    PointCloudUniqueValueRenderer
+  ) {
+
+    var layer =  new PointCloudLayer({
+      url: "http://tilesdevext.arcgis.com/tiles/5xC5Wrapp1gUAl2r/arcgis/rest/services/test_sonoma8_lepcc_SR4326_2016_10_25/SceneServer",
+      renderer: new PointCloudRGBRenderer({
+        field: "RGB"
+      })
+    });
+
+    var scene = new WebScene({
+      basemap: "dark-gray",
+      ground: "world-elevation",
+
+      layers: [ layer ]
+    });
+
+    var view = new SceneView({
+      map: scene,
+      container: containers.viewDiv,
+
+      ui: {
+        components: []
+      },
+
+      camera: {
+        position: [-122.627, 38.179, 55.71],
+        heading: 268.03,
+        tilt: 87.00
+      }
+    });
+
+
+    view.watch("camera", function(camera) {
+      interlinks.log("[Heading]", Math.round(view.camera.heading));
+    });
+
+    view.watch("extent", function(extent) {
+      interlinks.overviewMap.extent = extent;
+    });
+
+    interlinks.playButton = function() {
+      layer.renderer = new PointCloudUniqueValueRenderer({
+      field: "CLASS_CODE",
+      colorUniqueValueInfos: [
+        {
+          values: [2],
+          label: "Ground",
+          color: [222, 184, 135]
+        }, {
+          values: [3, 4, 5],
+          label: "Vegetation",
+          color: [200, 232, 171]
+        }, {
+          values: [6],
+          label: "Building",
+          color: [158, 40, 17]
+        }, {
+          values: [7, 8, 9, 10, 11, 12],
+          label: "Other",
+          color: [50, 50, 50]
+        }
+      ]});
+    };
+
+  });
+}
+
+settings = {
+  // disableViewDiv: true,
+  // disableOverviewMap: true,
+  // disableLog: true
+};
+
+</script>
+
+<script src="./support/snippet.js"></script>

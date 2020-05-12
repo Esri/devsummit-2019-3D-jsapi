@@ -1,0 +1,101 @@
+<script>
+function snippet(containers, interlinks) {
+  require([
+    "esri/Map",
+    "esri/Graphic",
+    "esri/geometry/Polygon",
+    "esri/geometry/SpatialReference",
+    "esri/layers/GraphicsLayer",
+    "esri/views/SceneView"
+  ], function(
+    Map,
+    Graphic,
+    Polygon,
+    SpatialReference,
+    GraphicsLayer,
+    SceneView
+  ) {
+
+
+    var map = Map({
+      basemap: "dark-gray",
+      ground: "world-elevation"
+    });
+
+    var graphicsLayer = new GraphicsLayer({
+      elevationInfo: {
+        mode: "on-the-ground"
+      }
+    });
+    map.add(graphicsLayer);
+
+    var view = new SceneView({
+      map: map,
+      container: containers.viewDiv,
+
+      ui: {
+        components: []
+      },
+
+      center: [0, 0]
+    });
+
+    interlinks.playButton = function() {
+      view.when(function() {
+        require(["dojo/text!./data/PB2002_plates.json"], function(PB2002_plates) {
+          var plates = JSON.parse(PB2002_plates);
+
+          for (var feature of plates.features) {
+
+              function addPolygonGraphic(rings, color) {
+                var polygon = new Polygon({
+                  spatialReference: SpatialReference.WGS84,
+                  rings: rings
+                });
+
+                var symbol = {
+                  type: "simple-fill", // autocasts as new SimpleFillSymbol()
+                  // color: [227, 139, 79, 0.8],
+                  color: color,
+                  outline: { // autocasts as new SimpleLineSymbol()
+                    color: [255, 255, 255],
+                    width: 1
+                  }
+                };
+
+                var graphic = new Graphic({
+                  geometry: polygon,
+                  symbol: symbol
+                });
+
+                graphicsLayer.add(graphic);
+              }
+
+              var color = [ Math.round(Math.random() * 128) + 128, Math.round(Math.random() * 128) + 128, Math.round(Math.random() * 128) + 128, 0.5];
+
+              if (feature.geometry.type === "MultiPolygon") {
+
+                for (var polygon of feature.geometry.coordinates) {
+                  addPolygonGraphic(polygon, color);
+                }
+              } else {
+                addPolygonGraphic(feature.geometry.coordinates, color);
+              }
+          }
+        });
+      });
+    };
+
+    window.parent.view = view;
+
+  });
+}
+
+settings = {
+  disableOverviewMap: true,
+  disableLog: true
+};
+
+</script>
+
+<script src="./support/snippet.js"></script>
