@@ -47,3 +47,26 @@ The [4D Volume Rendering Demo](https://esri.github.io/devsummit-2019-3D-jsapi/Ad
 In this session we will learn some of the basics of TypeScript and how it can help you as a developer using the ArcGIS API for JavaScript. We will also look at how to set up a development environment and use the provided TypeScript definition files.
 
 [https://esri.github.io/devsummit-2019-3D-jsapi/Using-TypeScript-with-ArcGIS-API-for-JavaScript](https://esri.github.io/devsummit-2019-3D-jsapi/Using-TypeScript-with-ArcGIS-API-for-JavaScript)
+
+---
+
+## Installation & Contributing
+
+Esri welcomes contributions from anyone and everyone. Please see[CONTRIBUTING.md](./CONTRIBUTING.md) for more details.
+
+## Licensing
+Copyright 2020 Esri
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+A copy of the license is available in the repository's [license.txt](./license.txt) file.
